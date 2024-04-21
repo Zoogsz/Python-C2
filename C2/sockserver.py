@@ -99,12 +99,12 @@ if __name__ == '__main__':
             command = input('Enter command#> ')
             if command.split(" ")[0] == 'sessions':
                 session_counter = 0
-                if command.split (" ")[1] == '-1':
+                if command.split (" ")[1] == '-l':
                     myTable = PrettyTable()
-                    myTable.field_names = ['Session', 'Target']
+                    myTable.field_names = ['Session', 'Target', 'Check-In Time']
                     myTable.padding_width = 3
                     for target in targets:
-                        myTable.add_row([session_counter, target[1]])
+                        myTable.add_row([session_counter, target[1], target[2]])
                         session_counter += 1
                     print(myTable)
                 if command.split(" ")[1] == '-i':
