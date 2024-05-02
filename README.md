@@ -1,4 +1,4 @@
-#Python C2#
+# Python C2 #
 
 A barebones python command and control server modeled after https://mayorsec.github.io/MayorSecSecuritySolutions/
 
